@@ -3,7 +3,16 @@ import { Plug, MessageCircle, X, Minimize2 } from 'lucide-react';
 
 import { Send, Code, Palette, Database, Globe, Smartphone, Cpu } from 'lucide-react';
 
+
 const AnimatedPortfolio = () => {
+  const [formData, setFormData] = useState({
+  name: '',
+  email: '',
+  message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState('');
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [textIndex, setTextIndex] = useState(0);
@@ -12,6 +21,52 @@ const AnimatedPortfolio = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [quoteOpacity, setQuoteOpacity] = useState(1);
+  const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
+
+  
+
+  const iconStyle = {
+    width: '24px',
+    height: '24px',
+  };
+  
+
+  const projects = [
+  {
+    id: 1,
+    name: 'Meal planner and Recipe Box',
+    description: "A smart food app that suggests the best recipes, cocktails, and wines — powered by AI, personalized just for your cravings.",
+    tech: ['Python', 'Fastapi', 'MongoDB', 'LLM', 'Qdrant'],
+    animationType: 'food'
+  },
+  {
+    id: 2,
+    name: 'Stock Market Predictor',
+    description: 'LSTM-based stock price prediction with real-time analysis',
+    tech: ['Python', 'TensorFlow', 'LSTM', 'RNN','FastAPI'],
+    animationType: 'stock'
+  },
+  {
+    id: 3,
+    name: 'AI Personal Assistant',
+    description: 'Intelligent chatbot with natural language processing',
+    tech: ['Python', 'OpenAI', 'FastAPI', 'Qdrant','RAG','twillio'],
+    animationType: 'assistant'
+  }
+];
+
+
+// 3. Add this useEffect for project rotation:
+// 3. Add this useEffect for project rotation:
+useEffect(() => {
+  const projectTimer = setInterval(() => {
+    setCurrentProjectIndex((prev) => (prev + 1) % projects.length);
+  }, 5000); // Change every 5 seconds
+  
+  return () => clearInterval(projectTimer);
+}, [projects.length]);
+
 
   const texts = [
     'a Python Developer',
@@ -19,10 +74,7 @@ const AnimatedPortfolio = () => {
     'a Data Scientist'
   ];
 
-  const iconStyle = {
-    width: '24px',
-    height: '24px',
-  };
+  
 
   const skills = [
     { name: 'Python', icon: <Code style={iconStyle} /> },
@@ -40,6 +92,31 @@ const AnimatedPortfolio = () => {
       icon: <Smartphone style={iconStyle} />
     },
   ];
+
+  // Quotes
+  const quotes = [
+  {
+    text: "The only way to do great work is to love what you do.",
+    author: "Steve Jobs"
+  },
+  {
+    text: "Innovation distinguishes between a leader and a follower.",
+    author: "Steve Jobs"
+  },
+  {
+    text: "Code is like humor. When you have to explain it, it's bad.",
+    author: "Cory House"
+  },
+
+  {
+    text: "Experience is the name everyone gives to their mistakes.",
+    author: "Oscar Wilde"
+  },
+  {
+    text: "Design is not just what it looks like and feels like. Design is how it works.",
+    author: "Steve Jobs"
+  }
+];
 
   // Enhanced message formatting function
   const formatMessage = (content) => {
@@ -108,8 +185,6 @@ const AnimatedPortfolio = () => {
 
 
 
-
-
   // Typing animation effect
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -134,12 +209,48 @@ const AnimatedPortfolio = () => {
     return () => clearTimeout(timer);
   }, [currentText, isDeleting, textIndex, texts]);
 
+  
+
+
+  // Quote animation effect
+  useEffect(() => {
+  const quoteTimer = setInterval(() => {
+    // Start fade out
+    setQuoteOpacity(0);
+    
+    setTimeout(() => {
+      // Change quote during fade
+      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
+      
+      // Start fade in
+      setTimeout(() => {
+        setQuoteOpacity(1);
+      }, 100);
+    }, 500); // Half second to fade out
+  }, 4000); // Change every 4 seconds
+  
+  return () => clearInterval(quoteTimer);
+}, [quotes.length]);
+
+function getOrCreateUserId() {
+  let userId = localStorage.getItem("portfolio_user_id");
+  if (!userId) {
+    userId = crypto.randomUUID(); // Generates a one-time UUID
+    localStorage.setItem("portfolio_user_id", userId);
+  }
+  return userId;
+}
+
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
+
+    const userId = getOrCreateUserId(); 
 
     const newMessage = { type: 'user', content: inputMessage };
     setMessages(prev => [...prev, newMessage]);
     setIsLoading(true);
+
+
 
     try {
       const response = await fetch('http://localhost:8002/api/v1/qns-ans', {
@@ -147,7 +258,7 @@ const AnimatedPortfolio = () => {
         headers: {
           'Content-Type': 'application/json', 
         },
-        body: JSON.stringify({ query: inputMessage }),
+        body: JSON.stringify({ userId,query: inputMessage ,}),
       });
       const data = await response.json();
       setMessages(prev => [...prev, { type: 'bot', content: data.response || 'Sorry, I could not process your request.' }]);
@@ -159,6 +270,48 @@ const AnimatedPortfolio = () => {
     }
   };
 
+  const handleFormSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setSubmitStatus('');
+
+  try {
+    // Simulate form submission - replace with your actual endpoint
+    const response = await fetch('http://localhost:8002/api/v1/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } else {
+      setSubmitStatus('error');
+    }
+  } catch (error) {
+    setSubmitStatus('error');
+  } finally {
+    setIsSubmitting(false);
+    // Clear status after 3 seconds
+    setTimeout(() => setSubmitStatus(''), 3000);
+  }
+};
+
+const handleInputChange = (e) => {
+  const { name, value } = e.target;
+  setFormData(prev => ({
+    ...prev,
+    [name]: value
+  }));
+};
+
+
+
+  
+
   const styles = {
     container: {
       minHeight: '100vh',
@@ -169,7 +322,7 @@ const AnimatedPortfolio = () => {
     },
     heroSection: {
       position: 'relative',
-      height: '100vh',
+      height: '60vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -381,8 +534,132 @@ const AnimatedPortfolio = () => {
       textAlign: 'center',
       fontWeight: '600',
       whiteSpace: 'nowrap'
-    },
-    
+    },    
+
+    // form section
+    contactSection: {
+    padding: '5rem 0',
+    background: 'rgba(0, 0, 0, 0.4)',
+    backdropFilter: 'blur(10px)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
+  },
+  contactTitle: {
+    textAlign: 'center',
+    marginBottom: '3rem'
+  },
+  contactTitleText: {
+    fontSize: '2.5rem',
+    fontWeight: 'bold',
+    marginBottom: '1rem',
+    background: 'linear-gradient(to right, #22d3ee, #a855f7)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text'
+  },
+  contactSubtitle: {
+    fontSize: '1.125rem',
+    color: '#d1d5db',
+    textAlign: 'center'
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: '600px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    backdropFilter: 'blur(10px)',
+    borderRadius: '20px',
+    padding: '2.5rem',
+    border: '1px solid rgba(255, 255, 255, 0.2)'
+  },
+  formGroup: {
+    marginBottom: '1.5rem'
+  },
+  formLabel: {
+    display: 'block',
+    marginBottom: '0.5rem',
+    color: 'white',
+    fontSize: '1rem',
+    fontWeight: '500'
+  },
+  formInput: {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    borderRadius: '10px',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    background: 'rgba(255, 255, 255, 0.1)',
+    color: 'white',
+    fontSize: '1rem',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    boxSizing: 'border-box'
+  },
+  formInputFocus: {
+    borderColor: '#22d3ee',
+    background: 'rgba(255, 255, 255, 0.15)'
+  },
+  formTextarea: {
+    width: '100%',
+    padding: '0.75rem 1rem',
+    borderRadius: '10px',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    background: 'rgba(255, 255, 255, 0.1)',
+    color: 'white',
+    fontSize: '1rem',
+    outline: 'none',
+    transition: 'all 0.3s ease',
+    boxSizing: 'border-box',
+    minHeight: '120px',
+    resize: 'vertical'
+  },
+  submitButton: {
+    width: '100%',
+    padding: '0.875rem 1.5rem',
+    borderRadius: '10px',
+    border: 'none',
+    background: 'linear-gradient(135deg, #22d3ee, #a855f7)',
+    color: 'white',
+    fontSize: '1rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    outline: 'none'
+  },
+  submitButtonHover: {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 10px 20px rgba(34, 211, 238, 0.3)'
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
+    cursor: 'not-allowed',
+    transform: 'none'
+  },
+  statusMessage: {
+    padding: '0.75rem 1rem',
+    borderRadius: '8px',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    marginTop: '1rem',
+    textAlign: 'center'
+  },
+  successMessage: {
+    background: 'rgba(16, 185, 129, 0.2)',
+    color: '#10b981',
+    border: '1px solid rgba(16, 185, 129, 0.3)'
+  },
+  errorMessage: {
+    background: 'rgba(239, 68, 68, 0.2)',
+    color: '#ef4444',
+    border: '1px solid rgba(239, 68, 68, 0.3)'
+  },
+  footer: {
+    padding: '2rem 0',
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: '0.875rem',
+    background: 'rgba(0, 0, 0, 0.2)'
+  },
+
     // Chatbot Widget Styles
     chatWidget: {
       position: 'fixed',
@@ -427,17 +704,17 @@ const AnimatedPortfolio = () => {
     },
     chatContainer: {
       position: 'absolute',
-      bottom: '70px',
+      bottom: '80px',
       right: '0',
-      width: '350px',
+      width: '420px',
       height: '500px',
       background: 'rgba(255, 255, 255, 0.95)',
       backdropFilter: 'blur(10px)',
-      borderRadius: '20px',
-      boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+      borderRadius: '30px',
+      boxShadow: '0 10px 40px rgba(0,0,0,0.3)',
       transform: isChatOpen ? 'scale(1) translateY(0)' : 'scale(0) translateY(20px)',
       transformOrigin: 'bottom right',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.6s ease',
       opacity: isChatOpen ? 1 : 0,
       pointerEvents: isChatOpen ? 'all' : 'none',
       display: 'flex',
@@ -455,10 +732,10 @@ const AnimatedPortfolio = () => {
       borderTopRightRadius: '20px'
     },
     chatHeaderTitle: {
-      fontSize: '16px',
-      fontWeight: 'bold',
-      margin: 0
-    },
+    fontSize: '16px',
+    fontWeight: 'bold',
+    margin: 0,
+  },
     chatHeaderButtons: {
       display: 'flex',
       gap: '10px'
@@ -479,7 +756,7 @@ const AnimatedPortfolio = () => {
       display: isMinimized ? 'none' : 'block'
     },
     chatInputContainer: {
-      padding: '15px',
+      padding: '12px',
       borderTop: '1px solid rgba(0,0,0,0.1)',
       display: isMinimized ? 'none' : 'flex',
       gap: '10px'
@@ -605,8 +882,185 @@ const AnimatedPortfolio = () => {
       color: '#666',
       padding: '20px',
       fontSize: '14px'
-    }
+    },
+  quotesSection: {
+  padding: '0.3rem 0', // Reduced from 5rem
+  background: 'rgba(0, 0, 0, 0.3)', // Match other sections
+  backdropFilter: 'blur(100px)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  minHeight: '180px' // Reduced from 400px
+},
+quoteContainer: {
+  textAlign: 'center',
+  maxWidth: '1000px',
+  padding: '0 8rem',
+  transition: 'opacity 0.6s ease-in-out',
+  opacity: quoteOpacity
+},
+quoteText: {
+  fontSize: '1.5rem',
+  fontStyle: 'italic',
+  color: '#e5e5e5',
+  marginBottom: '1rem',
+  lineHeight: '1.6'
+},
+quoteAuthor: {
+  fontSize: '1rem',
+  color: '#22d3ee',
+  fontWeight: '600',
+  marginBottom: '1.5rem'
+},
+quoteDots: {
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '8px'
+},
+quoteDot: {
+  width: '8px',
+  height: '8px',
+  borderRadius: '50%',
+  background: 'rgba(255, 255, 255, 0.3)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease'
+},
+quoteDotActive: {
+  background: '#22d3ee',
+  transform: 'scale(1.2)'
+},
+
+projectsSection: {
+  padding: '5rem 0',
+  background: 'rgba(0, 0, 0, 0.2)',
+  backdropFilter: 'blur(10px)',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center'
+},
+projectsTitle: {
+  textAlign: 'center',
+  marginBottom: '3rem'
+},
+projectsTitleText: {
+  fontSize: '2.5rem',
+  fontWeight: 'bold',
+  marginBottom: '1rem',
+  background: 'linear-gradient(to right, #22d3ee, #a855f7)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text'
+},
+projectContainer: {
+  position: 'relative',
+  width: '100%',
+  maxWidth: '800px',
+  height: '400px',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center'
+},
+projectCard: {
+  position: 'absolute',
+  width: '600px',
+  height: '350px',
+  background: 'rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(10px)',
+  borderRadius: '20px',
+  padding: '2rem',
+  cursor: 'pointer',
+  transition: 'all 0.5s ease',
+  transform: 'scale(0.9) translateY(20px)',
+  opacity: 0
+},
+projectCardActive: {
+  transform: 'scale(1) translateY(0)',
+  opacity: 1
+},
+projectCardHover: {
+  background: 'rgba(255, 255, 255, 0.15)',
+  transform: 'scale(1.02) translateY(-5px)'
+},
+projectHeader: {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: '1.5rem'
+},
+projectInfo: {
+  flex: 1
+},
+projectName: {
+  fontSize: '1.8rem',
+  fontWeight: 'bold',
+  color: 'white',
+  marginBottom: '0.5rem'
+},
+projectDescription: {
+  fontSize: '1rem',
+  color: '#d1d5db',
+  marginBottom: '1rem',
+  lineHeight: '1.5'
+},
+projectTech: {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '0.5rem',
+  marginBottom: '1.5rem'
+},
+techTag: {
+  background: 'rgba(34, 211, 238, 0.2)',
+  color: '#22d3ee',
+  padding: '0.25rem 0.75rem',
+  borderRadius: '12px',
+  fontSize: '0.875rem',
+  fontWeight: '500'
+},
+projectAnimation: {
+  width: '120px',
+  height: '120px',
+  borderRadius: '15px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontSize: '3rem',
+  marginLeft: '2rem'
+},
+
+// Animation specific styles
+foodAnimation: {
+  background: 'linear-gradient(135deg, #ff6b6b, #ff8e8e)',
+  animation: 'foodBounce 2s ease-in-out infinite'
+},
+stockAnimation: {
+  background: 'linear-gradient(135deg, #4ecdc4, #44a08d)',
+  animation: 'stockPulse 2s ease-in-out infinite'
+},
+assistantAnimation: {
+  background: 'linear-gradient(135deg, #667eea, #764ba2)',
+  animation: 'assistantGlow 2s ease-in-out infinite'
+},
+projectDots: {
+  display: 'flex',
+  justifyContent: 'center',
+  gap: '10px',
+  marginTop: '2rem'
+},
+projectDot: {
+  width: '12px',
+  height: '12px',
+  borderRadius: '50%',
+  background: 'rgba(255, 255, 255, 0.3)',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease'
+},
+projectDotActive: {
+  background: '#22d3ee',
+  transform: 'scale(1.3)'
+},
+
   };
+
 
   const keyframes = `
     @keyframes pulse {
@@ -642,11 +1096,60 @@ const AnimatedPortfolio = () => {
         box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
       }
     }
+      @keyframes foodBounce {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(5deg); }
+    }
+    
+    @keyframes stockPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes assistantGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+      50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.8); }
+    }
+    
   `;
 
+
+
+
   return (
+    
     <div style={styles.container}>
       <style>{keyframes}</style>
+
+      {/* ADD QUOTES SECTION HERE */}
+    <div style={styles.quotesSection}>
+  <div style={styles.quoteContainer}>
+    <div style={styles.quoteText}>
+      "{quotes[currentQuoteIndex].text}"
+    </div>
+    <div style={styles.quoteAuthor}>
+      — {quotes[currentQuoteIndex].author}
+    </div>
+    <div style={styles.quoteDots}>
+      {quotes.map((_, index) => (
+        <div
+          key={index}
+          style={{
+            ...styles.quoteDot,
+            ...(index === currentQuoteIndex ? styles.quoteDotActive : {})
+          }}
+          onClick={() => {
+            setQuoteOpacity(0);
+            setTimeout(() => {
+              setCurrentQuoteIndex(index);
+              setTimeout(() => setQuoteOpacity(1), 100);
+            }, 250);
+          }}
+        />
+      ))}
+    </div>
+  </div>
+</div>
       
       {/* Hero Section */}
       <div style={styles.heroSection}>
@@ -665,7 +1168,7 @@ const AnimatedPortfolio = () => {
             </span>
           </div>
           <p style={{ ...styles.description, marginTop: '30px' }}>
-            Keep it simple.
+            Simplicity is the ultimate sophistication.
           </p>
         </div>
 
@@ -737,6 +1240,188 @@ const AnimatedPortfolio = () => {
           </div>
         </div>
       </div>
+
+
+      {/* Projects Section */}
+      <div style={styles.projectsSection}>
+  <div style={styles.projectsTitle}>
+    <h2 style={styles.projectsTitleText}>
+      Featured Projects
+    </h2>
+  </div>
+  
+  <div style={styles.projectContainer}>
+    {projects.map((project, index) => (
+      <div
+        key={project.id}
+        style={{
+          ...styles.projectCard,
+          ...(index === currentProjectIndex ? styles.projectCardActive : {})
+        }}
+        onClick={() => window.open(project.githubUrl, '_blank')}
+        onMouseEnter={(e) => {
+          if (index === currentProjectIndex) {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+            e.currentTarget.style.transform = 'scale(1.02) translateY(-5px)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (index === currentProjectIndex) {
+            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            e.currentTarget.style.transform = 'scale(1) translateY(0)';
+          }
+        }}
+      >
+        <div style={styles.projectHeader}>
+          <div style={styles.projectInfo}>
+            <h3 style={styles.projectName}>{project.name}</h3>
+            <p style={styles.projectDescription}>{project.description}</p>
+            <div style={styles.projectTech}>
+              {project.tech.map((tech, techIndex) => (
+                <span key={techIndex} style={styles.techTag}>
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div style={{
+            ...styles.projectAnimation,
+            ...(project.animationType === 'food' ? styles.foodAnimation : {}),
+            ...(project.animationType === 'stock' ? styles.stockAnimation : {}),
+            ...(project.animationType === 'assistant' ? styles.assistantAnimation : {})
+          }}>
+            {project.animationType === 'food' && '🍕'}
+            {project.animationType === 'stock' && '📈'}
+            {project.animationType === 'assistant' && '🤖'}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+  
+  <div style={styles.projectDots}>
+    {projects.map((_, index) => (
+      <div
+        key={index}
+        style={{
+          ...styles.projectDot,
+          ...(index === currentProjectIndex ? styles.projectDotActive : {})
+        }}
+        onClick={() => setCurrentProjectIndex(index)}
+      />
+    ))}
+  </div>
+</div>
+
+      <div style={styles.contactSection}>
+    <div style={styles.contactTitle}>
+      <h2 style={styles.contactTitleText}>
+        Get In Touch
+      </h2>
+    
+    </div>
+    
+    <div style={styles.formContainer}>
+      <form onSubmit={handleFormSubmit}>
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            style={styles.formInput}
+            placeholder="Your Name"
+            required
+            onFocus={(e) => {
+              e.target.style.borderColor = '#22d3ee';
+              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          />
+        </div>
+        
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Email</label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            style={styles.formInput}
+            placeholder="your.email@example.com"
+            required
+            onFocus={(e) => {
+              e.target.style.borderColor = '#22d3ee';
+              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          />
+        </div>
+        
+        <div style={styles.formGroup}>
+          <label style={styles.formLabel}>Message</label>
+          <textarea
+            name="message"
+            value={formData.message}
+            onChange={handleInputChange}
+            style={styles.formTextarea}
+            placeholder="Tell me about your project..."
+            required
+            onFocus={(e) => {
+              e.target.style.borderColor = '#22d3ee';
+              e.target.style.background = 'rgba(255, 255, 255, 0.15)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+              e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+            }}
+          />
+        </div>
+        
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          style={{
+            ...styles.submitButton,
+            ...(isSubmitting ? styles.submitButtonDisabled : {})
+          }}
+          onMouseEnter={(e) => {
+            if (!isSubmitting) {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 10px 20px rgba(34, 211, 238, 0.3)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isSubmitting) {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = 'none';
+            }
+          }}
+        >
+          {isSubmitting ? 'Sending...' : 'Send Message'}
+        </button>
+        
+        {submitStatus && (
+          <div style={{
+            ...styles.statusMessage,
+            ...(submitStatus === 'success' ? styles.successMessage : styles.errorMessage)
+          }}>
+            {submitStatus === 'success' 
+              ? '✓ Message sent successfully! I\'ll get back to you soon.'
+              : '✗ Failed to send message. Please try again.'
+            }
+          </div>
+        )}
+      </form>
+    </div>
+  </div>
 
       {/* Chatbot Widget */}
       <div style={styles.chatWidget}>
