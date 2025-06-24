@@ -14,9 +14,9 @@ const AnimatedPortfolio = () => {
   const [isMinimized, setIsMinimized] = useState(false);
 
   const texts = [
-    'Python Developer',
-    'AI/ML Developer', 
-    'Data Scientist'
+    'a Python Developer',
+    'an AI Developer', 
+    'a Data Scientist'
   ];
 
   const iconStyle = {
@@ -657,9 +657,9 @@ const AnimatedPortfolio = () => {
 
         {/* Left Side - Text Animation */}
         <div style={styles.leftSection}>
-          <h1 style={styles.mainTitle}>Hello!</h1>
+          <h1 style={styles.mainTitle}>Hello! I am Satyam</h1>
           <div style={styles.typewriterContainer}>
-            You can call me a
+            Hire me as
             <span style={styles.typewriterText}>
               {currentText}
             </span>
