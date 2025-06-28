@@ -1258,8 +1258,7 @@ projectDotActive: {
           ...styles.projectCard,
           ...(index === currentProjectIndex ? styles.projectCardActive : {})
         }}
-        onClick={() => window.open(project.githubUrl, '_blank')}
-        onMouseEnter={(e) => {
+z        onMouseEnter={(e) => {
           if (index === currentProjectIndex) {
             e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
             e.currentTarget.style.transform = 'scale(1.02) translateY(-5px)';
@@ -1307,7 +1306,6 @@ projectDotActive: {
           ...styles.projectDot,
           ...(index === currentProjectIndex ? styles.projectDotActive : {})
         }}
-        onClick={() => setCurrentProjectIndex(index)}
       />
     ))}
   </div>
