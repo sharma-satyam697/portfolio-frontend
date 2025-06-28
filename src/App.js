@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plug, MessageCircle, X, Minimize2 } from 'lucide-react';
+import { Plug, MessageCircle, X } from 'lucide-react';
 
-import { Send, Code, Palette, Database, Globe, Smartphone, Cpu } from 'lucide-react';
+import { Send, Code, Database, Smartphone, Cpu } from 'lucide-react';
 
 
 const AnimatedPortfolio = () => {
@@ -20,7 +20,7 @@ const AnimatedPortfolio = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized] = useState(false);
   const [quoteOpacity, setQuoteOpacity] = useState(1);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
 
