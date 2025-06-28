@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { Plug, MessageCircle, X } from 'lucide-react';
 
 import { Send, Code, Database, Smartphone, Cpu } from 'lucide-react';
@@ -68,12 +69,11 @@ useEffect(() => {
 }, [projects.length]);
 
 
-  const texts = [
-    'a Python Developer',
-    'an AI Developer', 
-    'a Data Scientist'
-  ];
-
+  const texts = useMemo(() => [
+  'a Python Developer',
+  'an AI Developer',
+  'a Data Scientist'
+], []);
   
 
   const skills = [
